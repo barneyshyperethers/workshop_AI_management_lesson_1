@@ -1,0 +1,591 @@
+{
+  "name": "Demo dostawy owoców",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "in:inbox subject:AUDYT-DOSTAWA",
+          "readStatus": "both"
+        },
+        "options": {}
+      },
+      "id": "d21b12ad-9ce5-459a-b9e3-264f7e701978",
+      "name": "Nowy mail audytowy",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "jeXD9i81piH0DbUK",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ (($json.subject || \"\") + \" \" + ($json.text || \"\")).toLowerCase() }}",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              },
+              "rightValue": "jabł|banan|ananas"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "bc05d322-c524-478b-bb3c-5f77f3ca4b63",
+      "name": "Filtr owoców",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        480,
+        128
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "169b6790-888b-4a05-b604-d645027ee2b3",
+      "name": "Start ręczny",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": true,
+        "simple": false,
+        "filters": {
+          "q": "in:inbox subject:AUDYT-DOSTAWA",
+          "readStatus": "both"
+        },
+        "options": {}
+      },
+      "id": "e5d211ef-4c11-4d83-baa1-371c3907e11c",
+      "name": "Pobierz maile audytowe",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        240
+      ],
+      "webhookId": "b7db3b45-d152-407a-b747-621d30c888a8",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "jeXD9i81piH0DbUK",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1jfQDZYtF1Cyu0p5fVitHZ-vaAYAOF8v0g_4RwA9DUt8"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "dostawy"
+        },
+        "options": {}
+      },
+      "id": "517c13e2-f864-47ff-8e5b-c6aa6fab1418",
+      "name": "Już policzone",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        720,
+        128
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "cXonSES33bjD5PR4",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const istniejace = $input.all().map(i => String(i.json.message_id ?? '')).filter(Boolean);\nconst nowe = $('Filtr owoców').all().filter(i => !istniejace.includes(String(i.json.id)));\nreturn nowe.map(i => ({ json: i.json }));"
+      },
+      "id": "cb25b37c-cf2b-45ee-b7ce-cc5492ab108b",
+      "name": "Dedup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.subject }}\n\n{{ $json.text }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "jablka",
+              "type": "number",
+              "description": "Liczba jabłek dostarczonych w kontenerze. 0 jeśli w mailu nie ma jabłek. Ignoruj numery certyfikatów ISO, numery kontenerów, numery partii i daty.",
+              "required": true
+            },
+            {
+              "name": "banany",
+              "type": "number",
+              "description": "Liczba bananów dostarczonych w kontenerze. 0 jeśli w mailu nie ma bananów. Ignoruj numery certyfikatów ISO, numery kontenerów, numery partii i daty.",
+              "required": true
+            },
+            {
+              "name": "ananasy",
+              "type": "number",
+              "description": "Liczba ananasów dostarczonych w kontenerze. 0 jeśli w mailu nie ma ananasów. Ignoruj numery certyfikatów ISO, numery kontenerów, numery partii i daty.",
+              "required": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7e32784b-83c4-4a52-8205-00a934653cda",
+      "name": "AI: wyciągnij ilości",
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "model": "anthropic/claude-haiku-5.5",
+        "options": {}
+      },
+      "id": "18d946e6-39c6-48a3-907e-59d8c442725a",
+      "name": "Claude Haiku (OpenRouter)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        352
+      ],
+      "credentials": {
+        "openRouterApi": {
+          "id": "Faj1MgfWllGs96Zv",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ (Number($json.output.jablka) || 0) + (Number($json.output.banany) || 0) + (Number($json.output.ananasy) || 0) }}",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              },
+              "rightValue": 0
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "92115103-2fbf-46c3-820a-cb018f76e815",
+      "name": "Czy są ilości?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        1440,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1jfQDZYtF1Cyu0p5fVitHZ-vaAYAOF8v0g_4RwA9DUt8"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "dostawy"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message_id": "={{ $('Dedup').item.json.id }}",
+            "data": "={{ $now.setZone(\"Europe/Warsaw\").toFormat(\"yyyy-MM-dd HH:mm\") }}",
+            "temat": "={{ $('Dedup').item.json.subject }}",
+            "jablka": "={{ $json.output.jablka }}",
+            "banany": "={{ $json.output.banany }}",
+            "ananasy": "={{ $json.output.ananasy }}"
+          },
+          "schema": [
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "data",
+              "displayName": "data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "temat",
+              "displayName": "temat",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "jablka",
+              "displayName": "jablka",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "banany",
+              "displayName": "banany",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ananasy",
+              "displayName": "ananasy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {
+          "cellFormat": "RAW"
+        }
+      },
+      "id": "98487c74-35a8-41cb-86e0-1337fe30ee3c",
+      "name": "Zapisz dostawę",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1680,
+        112
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "cXonSES33bjD5PR4",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1jfQDZYtF1Cyu0p5fVitHZ-vaAYAOF8v0g_4RwA9DUt8"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "dostawy"
+        },
+        "options": {}
+      },
+      "id": "1e0ae587-2cad-4070-8319-2f0c01d12f9b",
+      "name": "Wszystkie dostawy",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1920,
+        112
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "cXonSES33bjD5PR4",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1jfQDZYtF1Cyu0p5fVitHZ-vaAYAOF8v0g_4RwA9DUt8"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "cel"
+        },
+        "options": {}
+      },
+      "id": "2c5d9936-ca7e-4e34-8171-cd7050c9b6e3",
+      "name": "Cel zamówienia",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2160,
+        112
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "cXonSES33bjD5PR4",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const dostawy = $('Wszystkie dostawy').all().map(i => i.json);\nconst cel = {};\n$input.all().forEach(r => { cel[r.json.owoc] = Number(r.json.cel); });\nconst nazwy = { jablka: 'Jabłka', banany: 'Banany', ananasy: 'Ananasy' };\nconst suma = { jablka: 0, banany: 0, ananasy: 0 };\ndostawy.forEach(d => { Object.keys(suma).forEach(k => { suma[k] += Number(d[k]) || 0; }); });\nconst linie = Object.keys(cel).map(k => {\n  const r = suma[k] - cel[k];\n  const status = r === 0 ? 'OK' : (r < 0 ? 'brakuje ' + (-r) : 'przekroczone o ' + r);\n  return (nazwy[k] || k) + ': ' + suma[k] + '/' + cel[k] + ' (' + status + ')';\n});\nreturn [{ json: { raport: linie.join('\\n'), liczba_dostaw: dostawy.length, suma: suma } }];"
+      },
+      "id": "d5d5dbd2-6467-40b8-b4db-98b334a9276f",
+      "name": "Raport",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        112
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Nowy mail audytowy": {
+      "main": [
+        [
+          {
+            "node": "Filtr owoców",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtr owoców": {
+      "main": [
+        [
+          {
+            "node": "Już policzone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start ręczny": {
+      "main": [
+        [
+          {
+            "node": "Pobierz maile audytowe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pobierz maile audytowe": {
+      "main": [
+        [
+          {
+            "node": "Filtr owoców",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Już policzone": {
+      "main": [
+        [
+          {
+            "node": "Dedup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dedup": {
+      "main": [
+        [
+          {
+            "node": "AI: wyciągnij ilości",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI: wyciągnij ilości": {
+      "main": [
+        [
+          {
+            "node": "Czy są ilości?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Haiku (OpenRouter)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI: wyciągnij ilości",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Czy są ilości?": {
+      "main": [
+        [
+          {
+            "node": "Zapisz dostawę",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Zapisz dostawę": {
+      "main": [
+        [
+          {
+            "node": "Wszystkie dostawy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wszystkie dostawy": {
+      "main": [
+        [
+          {
+            "node": "Cel zamówienia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cel zamówienia": {
+      "main": [
+        [
+          {
+            "node": "Raport",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "8aa848bb-4ca4-4b37-86e8-403dfdf9c74d",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "b8a85afa6ac476a44a67623ab6896ed0711c2ca3e3d7aca232e7dfb3084ab1ff"
+  },
+  "nodeGroups": [
+    {
+      "id": "d0118448-1a94-458a-a9d7-c31b4e0d1d31",
+      "name": "Odsiew i deduplikacja",
+      "nodeIds": [
+        "517c13e2-f864-47ff-8e5b-c6aa6fab1418",
+        "cb25b37c-cf2b-45ee-b7ce-cc5492ab108b"
+      ],
+      "description": "Pobiera ID już policzonych maili z arkusza i przepuszcza tylko nowe"
+    },
+    {
+      "id": "b946915c-0834-4444-b89f-4f644d6a8ec4",
+      "name": "AI: odczyt ilości",
+      "nodeIds": [
+        "7e32784b-83c4-4a52-8205-00a934653cda",
+        "18d946e6-39c6-48a3-907e-59d8c442725a",
+        "92115103-2fbf-46c3-820a-cb018f76e815"
+      ],
+      "description": "Claude Haiku czyta mail i zwraca ilości jabłek, bananów i ananasów; puste odrzuca"
+    },
+    {
+      "id": "31c62294-f707-4f21-8c9f-426ab83f3d37",
+      "name": "Zapis i raport",
+      "nodeIds": [
+        "98487c74-35a8-41cb-86e0-1337fe30ee3c",
+        "1e0ae587-2cad-4070-8319-2f0c01d12f9b",
+        "2c5d9936-ca7e-4e34-8171-cd7050c9b6e3",
+        "d5d5dbd2-6467-40b8-b4db-98b334a9276f"
+      ],
+      "description": "Dopisuje dostawę do arkusza, przelicza sumy i porównuje z celem zamówienia"
+    }
+  ],
+  "id": "pfkTSc9aQstYyVGH",
+  "tags": []
+}
