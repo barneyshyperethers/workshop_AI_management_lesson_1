@@ -1,0 +1,666 @@
+{
+  "name": "n8n free workflow ocr",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": true,
+        "simple": false,
+        "filters": {
+          "q": "in:inbox has:attachment filename:pdf",
+          "readStatus": "both"
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        192,
+        -160
+      ],
+      "id": "cd0f4db9-260a-49a3-ad78-af31d084861b",
+      "name": "Fetch all audit emails",
+      "webhookId": "585864ee-9809-4af9-b160-6fd88913c443",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "jeXD9i81piH0DbUK",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -64
+      ],
+      "id": "65ec19cc-17ac-403a-ac5c-6a461463a507",
+      "name": "incoming email"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1jfQDZYtF1Cyu0p5fVitHZ-vaAYAOF8v0g_4RwA9DUt8",
+          "mode": "list",
+          "cachedResultName": "Baltic Fresh Import – Deliveries",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jfQDZYtF1Cyu0p5fVitHZ-vaAYAOF8v0g_4RwA9DUt8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "deliveries",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jfQDZYtF1Cyu0p5fVitHZ-vaAYAOF8v0g_4RwA9DUt8/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        816,
+        16
+      ],
+      "id": "6eb7edad-8e63-489a-a31d-224a7fbf3f81",
+      "name": "read saved deliveries",
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "cXonSES33bjD5PR4",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "54e90edd-ebba-4d99-b051-8e37822bb388",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "banana",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "a039f5d6-c091-4368-b086-06d52ebd7e75",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "apple",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "27ee7d69-ffa9-4c0b-b5ec-a2366a7875c4",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "pineapple",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "52480363-2faf-46a4-8b15-d9a5414c0986",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "mango",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "1bf9bb90-2bc7-4d12-9cf9-15994994de7f",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "orange",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        1600,
+        -80
+      ],
+      "id": "811f245b-a8f4-4011-9053-1f04900e6834",
+      "name": "Mentions fruit?"
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.text }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "container",
+              "description": "Container number: 4 letters followed by 7 digits, e.g. MSKU4521873.",
+              "required": true
+            },
+            {
+              "name": "bananas_kg",
+              "type": "number",
+              "description": "Total net weight of bananas in kg. If bananas appear in several rows or lots, add them up. 0 if there are no bananas.",
+              "required": true
+            },
+            {
+              "name": "oranges_kg",
+              "type": "number",
+              "description": "Total net weight of oranges in kg. Add up all rows. 0 if none.",
+              "required": true
+            },
+            {
+              "name": "apples_kg",
+              "type": "number",
+              "description": "Total net weight of apples in kg. Add up all rows. 0 if none. Pineapples are not apples.",
+              "required": true
+            },
+            {
+              "name": "pineapples_kg",
+              "type": "number",
+              "description": "Total net weight of pineapples in kg. Add up all rows. 0 if none.",
+              "required": true
+            },
+            {
+              "name": "mango_kg",
+              "type": "number",
+              "description": "Total net weight of mangoes in kg. Add up all rows. 0 if none.",
+              "required": true
+            }
+          ]
+        },
+        "options": {
+          "systemPromptTemplate": "You read quality inspection documents for imported fresh fruit.\n- Numbers use a comma as the thousands separator: 12,000 means 12000.\n- Use only the NET WEIGHT in kg. Never use the number of cartons or the kg per carton.\n- Ignore numbers that are not quantities of goods: CN codes, lot numbers, container and seal numbers, certificate numbers, ISO standards, temperatures, percentages, sample sizes and dates."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        1872,
+        -80
+      ],
+      "id": "b0759f25-2fa0-408a-9a0a-5db35b1fd7fb",
+      "name": "AI READS THE DOCUMENT"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "in:inbox has:attachment filename:pdf",
+          "readStatus": "both"
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -32,
+        -16
+      ],
+      "id": "30fb5c53-5131-43e2-931f-0cd4abaa694f",
+      "name": "New audit email (auto)",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "jeXD9i81piH0DbUK",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        -160
+      ],
+      "id": "d66d6aba-1de0-4c4f-82e7-3b8353f5ef2a",
+      "name": "Manual start"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "id",
+              "field2": "message_id"
+            }
+          ]
+        },
+        "joinMode": "keepNonMatches",
+        "outputDataFrom": "input1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1088,
+        -80
+      ],
+      "id": "e7a174ca-8e96-4818-a19e-4484b32c84d3",
+      "name": "Skip already counted"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "attachment_0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.2,
+      "position": [
+        1376,
+        -80
+      ],
+      "id": "8aa5e59e-0d0d-41b8-bfee-322ba7b36a7c",
+      "name": "Read PDF text"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-haiku-5-5",
+          "mode": "list",
+          "cachedResultName": "Claude Haiku 5.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.6,
+      "position": [
+        1872,
+        112
+      ],
+      "id": "0a99a53f-43d8-4eb6-a682-7a48ab75a039",
+      "name": "ai model (reasoning)",
+      "credentials": {
+        "anthropicApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1jfQDZYtF1Cyu0p5fVitHZ-vaAYAOF8v0g_4RwA9DUt8",
+          "mode": "list",
+          "cachedResultName": "Baltic Fresh Import – Deliveries",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jfQDZYtF1Cyu0p5fVitHZ-vaAYAOF8v0g_4RwA9DUt8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "deliveries",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jfQDZYtF1Cyu0p5fVitHZ-vaAYAOF8v0g_4RwA9DUt8/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message_id": "={{ $('Skip already counted').item.json.id }}",
+            "received_at": "={{ $now.setZone('Europe/Warsaw').toFormat('yyyy-MM-dd HH:mm') }}",
+            "subject": "={{ $('Skip already counted').item.json.subject }}",
+            "container": "={{ $json.output.container }}",
+            "bananas_kg": "={{ $json.output.bananas_kg }}",
+            "oranges_kg": "={{ $json.output.oranges_kg }}",
+            "apples_kg": "={{ $json.output.apples_kg }}",
+            "pineapples_kg": "={{ $json.output.pineapples_kg }}",
+            "mango_kg": "={{ $json.output.mango_kg }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "received_at",
+              "displayName": "received_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "container",
+              "displayName": "container",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "bananas_kg",
+              "displayName": "bananas_kg",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "oranges_kg",
+              "displayName": "oranges_kg",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "apples_kg",
+              "displayName": "apples_kg",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "pineapples_kg",
+              "displayName": "pineapples_kg",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "mango_kg",
+              "displayName": "mango_kg",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2320,
+        -80
+      ],
+      "id": "92036e7b-63d4-4571-a94b-73c83fa482d4",
+      "name": "Save delivery in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "cXonSES33bjD5PR4",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## 1. Incoming audit reports\nNew emails with a PDF are picked up automatically every minute, or on demand with a click.",
+        "height": 448,
+        "width": 704
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        -256
+      ],
+      "id": "20aa4c7e-91e8-44b9-a887-d76ca49a2233",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## 2. Duplicate check\nEach email is matched against the delivery log, so no shipment is ever counted twice.",
+        "height": 432,
+        "width": 496,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        736,
+        -256
+      ],
+      "id": "b813e555-3362-481c-9e03-e6ebeaa1a1cf",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 3. Document reading\nThe attached PDF is converted to text and screened for fruit before it reaches the AI.",
+        "height": 352,
+        "width": 464,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1312,
+        -256
+      ],
+      "id": "b1d89d6a-c96a-447d-9058-04285d6786b2",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## 4. AI extraction\nThe AI reads the report the way an inspector would and returns the container number and net weight of each fruit.",
+        "height": 512,
+        "width": 320,
+        "color": "#942929"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1824,
+        -256
+      ],
+      "id": "c7e32670-36db-4fd7-bc1b-e6c11080f8a8",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## 5. Delivery log\nEach shipment is added as a new row, and the sheet checks the totals against the order.",
+        "height": 512,
+        "color": "#962C93"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        -256
+      ],
+      "id": "3063b11c-7769-47d3-865f-aa507c2802cc",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Fetch all audit emails": {
+      "main": [
+        [
+          {
+            "node": "incoming email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "incoming email": {
+      "main": [
+        [
+          {
+            "node": "read saved deliveries",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Skip already counted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "read saved deliveries": {
+      "main": [
+        [
+          {
+            "node": "Skip already counted",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Mentions fruit?": {
+      "main": [
+        [
+          {
+            "node": "AI READS THE DOCUMENT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI READS THE DOCUMENT": {
+      "main": [
+        [
+          {
+            "node": "Save delivery in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New audit email (auto)": {
+      "main": [
+        [
+          {
+            "node": "incoming email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual start": {
+      "main": [
+        [
+          {
+            "node": "Fetch all audit emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip already counted": {
+      "main": [
+        [
+          {
+            "node": "Read PDF text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read PDF text": {
+      "main": [
+        [
+          {
+            "node": "Mentions fruit?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ai model (reasoning)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI READS THE DOCUMENT",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save delivery in sheet": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "5309d89e-3a55-4029-89e8-812c286e1230",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b8a85afa6ac476a44a67623ab6896ed0711c2ca3e3d7aca232e7dfb3084ab1ff"
+  },
+  "nodeGroups": [],
+  "id": "DWnzfQzagwIxrrY1",
+  "tags": []
+}
